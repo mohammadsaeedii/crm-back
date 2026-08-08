@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Platform users who can sign in to the panel
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  companies    Company[]
+}
+
+model Company {
+  id        Int             @id @default(autoincrement())
+  name      String
+  ownerId   Int
+  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members   CompanyMember[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([ownerId])
+}
+
+/// Users assigned to a company (selected from mock dropdown)
+model CompanyMember {
+  id         Int      @id @default(autoincrement())
+  companyId  Int
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  mockUserId String
+  name       String
+  email      String
+  createdAt  DateTime @default(now())
+
+  @@unique([companyId, mockUserId])
+  @@index([companyId])
+}
