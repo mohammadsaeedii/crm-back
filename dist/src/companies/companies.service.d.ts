@@ -3,12 +3,12 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 export declare class CompaniesService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    list(ownerId: number): import("@prisma/client").Prisma.PrismaPromise<({
+    list(tenantId: number, ownerId: number): import("@prisma/client").Prisma.PrismaPromise<({
         members: {
             id: number;
-            email: string;
             name: string;
             createdAt: Date;
+            email: string;
             mockUserId: string;
         }[];
     } & {
@@ -16,14 +16,15 @@ export declare class CompaniesService {
         name: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: number | null;
         ownerId: number;
     })[]>;
-    findOne(ownerId: number, id: number): Promise<{
+    findOne(tenantId: number, ownerId: number, id: number): Promise<{
         members: {
             id: number;
-            email: string;
             name: string;
             createdAt: Date;
+            email: string;
             mockUserId: string;
         }[];
     } & {
@@ -31,14 +32,15 @@ export declare class CompaniesService {
         name: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: number | null;
         ownerId: number;
     }>;
-    create(ownerId: number, dto: CreateCompanyDto): import("@prisma/client").Prisma.Prisma__CompanyClient<{
+    create(tenantId: number, ownerId: number, dto: CreateCompanyDto): import("@prisma/client").Prisma.Prisma__CompanyClient<{
         members: {
             id: number;
-            email: string;
             name: string;
             createdAt: Date;
+            email: string;
             companyId: number;
             mockUserId: string;
         }[];
@@ -47,20 +49,21 @@ export declare class CompaniesService {
         name: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: number | null;
         ownerId: number;
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
-    addMember(ownerId: number, companyId: number, mockUserId: string): Promise<{
+    addMember(tenantId: number, ownerId: number, companyId: number, mockUserId: string): Promise<{
         id: number;
-        email: string;
         name: string;
         createdAt: Date;
+        email: string;
         companyId: number;
         mockUserId: string;
     }>;
-    removeMember(ownerId: number, companyId: number, memberId: number): Promise<{
+    removeMember(tenantId: number, ownerId: number, companyId: number, memberId: number): Promise<{
         deleted: boolean;
     }>;
-    remove(ownerId: number, id: number): Promise<{
+    remove(tenantId: number, ownerId: number, id: number): Promise<{
         deleted: boolean;
     }>;
     private ensureOwned;

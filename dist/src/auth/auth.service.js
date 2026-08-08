@@ -55,17 +55,30 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
     }
     async login(dto) {
-        const user = await this.prisma.user.findUnique({
-            where: { email: dto.email.toLowerCase().trim() },
+        const email = dto.email.toLowerCase().trim();
+        const user = await this.prisma.user.findFirst({
+            where: {
+                email,
+                authProvider: 'local',
+                passwordHash: { not: null },
+            },
+            include: { tenant: true },
         });
-        if (!user) {
+        if (!user || !user.passwordHash) {
             throw new common_1.UnauthorizedException('Invalid email or password');
         }
         const valid = await bcrypt.compare(dto.password, user.passwordHash);
         if (!valid) {
             throw new common_1.UnauthorizedException('Invalid email or password');
         }
-        const payload = { userId: user.id };
+        if (!user.tenantId || !user.tenant) {
+            throw new common_1.UnauthorizedException('User is not assigned to a tenant');
+        }
+        const payload = {
+            userId: user.id,
+            tenantId: user.tenantId,
+            slug: user.tenant.slug,
+        };
         const accessToken = await this.jwtService.signAsync(payload);
         return {
             accessToken,
@@ -73,18 +86,39 @@ let AuthService = class AuthService {
                 id: user.id,
                 email: user.email,
                 name: user.name,
+                tenantId: user.tenantId,
+                slug: user.tenant.slug,
+                authProvider: user.authProvider,
             },
         };
     }
     async getMe(userId) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
-            select: { id: true, email: true, name: true },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                tenantId: true,
+                authProvider: true,
+                tenant: { select: { slug: true, name: true } },
+            },
         });
         if (!user) {
             throw new common_1.UnauthorizedException();
         }
-        return user;
+        return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            tenantId: user.tenantId,
+            slug: user.tenant?.slug ?? null,
+            tenantName: user.tenant?.name ?? null,
+            authProvider: user.authProvider,
+        };
+    }
+    async logout() {
+        return { loggedOut: true };
     }
 };
 exports.AuthService = AuthService;

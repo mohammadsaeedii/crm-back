@@ -13,9 +13,9 @@ import { findMockUser } from '../users/mock-users';
 export class CompaniesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  list(ownerId: number) {
+  list(tenantId: number, ownerId: number) {
     return this.prisma.company.findMany({
-      where: { ownerId },
+      where: { tenantId, ownerId },
       orderBy: { createdAt: 'desc' },
       include: {
         members: {
@@ -32,9 +32,9 @@ export class CompaniesService {
     });
   }
 
-  async findOne(ownerId: number, id: number) {
+  async findOne(tenantId: number, ownerId: number, id: number) {
     const company = await this.prisma.company.findFirst({
-      where: { id, ownerId },
+      where: { id, tenantId, ownerId },
       include: {
         members: {
           orderBy: { createdAt: 'asc' },
@@ -56,18 +56,24 @@ export class CompaniesService {
     return company;
   }
 
-  create(ownerId: number, dto: CreateCompanyDto) {
+  create(tenantId: number, ownerId: number, dto: CreateCompanyDto) {
     return this.prisma.company.create({
       data: {
         name: dto.name.trim(),
         ownerId,
+        tenantId,
       },
       include: { members: true },
     });
   }
 
-  async addMember(ownerId: number, companyId: number, mockUserId: string) {
-    await this.ensureOwned(ownerId, companyId);
+  async addMember(
+    tenantId: number,
+    ownerId: number,
+    companyId: number,
+    mockUserId: string,
+  ) {
+    await this.ensureOwned(tenantId, ownerId, companyId);
 
     const mock = findMockUser(mockUserId);
     if (!mock) {
@@ -94,8 +100,13 @@ export class CompaniesService {
     });
   }
 
-  async removeMember(ownerId: number, companyId: number, memberId: number) {
-    await this.ensureOwned(ownerId, companyId);
+  async removeMember(
+    tenantId: number,
+    ownerId: number,
+    companyId: number,
+    memberId: number,
+  ) {
+    await this.ensureOwned(tenantId, ownerId, companyId);
 
     const member = await this.prisma.companyMember.findFirst({
       where: { id: memberId, companyId },
@@ -109,13 +120,17 @@ export class CompaniesService {
     return { deleted: true };
   }
 
-  async remove(ownerId: number, id: number) {
-    await this.ensureOwned(ownerId, id);
+  async remove(tenantId: number, ownerId: number, id: number) {
+    await this.ensureOwned(tenantId, ownerId, id);
     await this.prisma.company.delete({ where: { id } });
     return { deleted: true };
   }
 
-  private async ensureOwned(ownerId: number, companyId: number) {
+  private async ensureOwned(
+    tenantId: number,
+    ownerId: number,
+    companyId: number,
+  ) {
     const company = await this.prisma.company.findUnique({
       where: { id: companyId },
     });
@@ -124,7 +139,7 @@ export class CompaniesService {
       throw new NotFoundException('Company not found');
     }
 
-    if (company.ownerId !== ownerId) {
+    if (company.tenantId !== tenantId || company.ownerId !== ownerId) {
       throw new ForbiddenException('Not your company');
     }
 

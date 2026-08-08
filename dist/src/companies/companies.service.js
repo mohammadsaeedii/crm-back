@@ -18,9 +18,9 @@ let CompaniesService = class CompaniesService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    list(ownerId) {
+    list(tenantId, ownerId) {
         return this.prisma.company.findMany({
-            where: { ownerId },
+            where: { tenantId, ownerId },
             orderBy: { createdAt: 'desc' },
             include: {
                 members: {
@@ -36,9 +36,9 @@ let CompaniesService = class CompaniesService {
             },
         });
     }
-    async findOne(ownerId, id) {
+    async findOne(tenantId, ownerId, id) {
         const company = await this.prisma.company.findFirst({
-            where: { id, ownerId },
+            where: { id, tenantId, ownerId },
             include: {
                 members: {
                     orderBy: { createdAt: 'asc' },
@@ -57,17 +57,18 @@ let CompaniesService = class CompaniesService {
         }
         return company;
     }
-    create(ownerId, dto) {
+    create(tenantId, ownerId, dto) {
         return this.prisma.company.create({
             data: {
                 name: dto.name.trim(),
                 ownerId,
+                tenantId,
             },
             include: { members: true },
         });
     }
-    async addMember(ownerId, companyId, mockUserId) {
-        await this.ensureOwned(ownerId, companyId);
+    async addMember(tenantId, ownerId, companyId, mockUserId) {
+        await this.ensureOwned(tenantId, ownerId, companyId);
         const mock = (0, mock_users_1.findMockUser)(mockUserId);
         if (!mock) {
             throw new common_1.BadRequestException('Invalid mock user');
@@ -89,8 +90,8 @@ let CompaniesService = class CompaniesService {
             },
         });
     }
-    async removeMember(ownerId, companyId, memberId) {
-        await this.ensureOwned(ownerId, companyId);
+    async removeMember(tenantId, ownerId, companyId, memberId) {
+        await this.ensureOwned(tenantId, ownerId, companyId);
         const member = await this.prisma.companyMember.findFirst({
             where: { id: memberId, companyId },
         });
@@ -100,19 +101,19 @@ let CompaniesService = class CompaniesService {
         await this.prisma.companyMember.delete({ where: { id: memberId } });
         return { deleted: true };
     }
-    async remove(ownerId, id) {
-        await this.ensureOwned(ownerId, id);
+    async remove(tenantId, ownerId, id) {
+        await this.ensureOwned(tenantId, ownerId, id);
         await this.prisma.company.delete({ where: { id } });
         return { deleted: true };
     }
-    async ensureOwned(ownerId, companyId) {
+    async ensureOwned(tenantId, ownerId, companyId) {
         const company = await this.prisma.company.findUnique({
             where: { id: companyId },
         });
         if (!company) {
             throw new common_1.NotFoundException('Company not found');
         }
-        if (company.ownerId !== ownerId) {
+        if (company.tenantId !== tenantId || company.ownerId !== ownerId) {
             throw new common_1.ForbiddenException('Not your company');
         }
         return company;

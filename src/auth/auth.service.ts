@@ -13,11 +13,19 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email.toLowerCase().trim() },
+    const email = dto.email.toLowerCase().trim();
+
+    // Local password login is only for demo/local users — never SSO-mapped accounts
+    const user = await this.prisma.user.findFirst({
+      where: {
+        email,
+        authProvider: 'local',
+        passwordHash: { not: null },
+      },
+      include: { tenant: true },
     });
 
-    if (!user) {
+    if (!user || !user.passwordHash) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -26,7 +34,15 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const payload: JwtPayload = { userId: user.id };
+    if (!user.tenantId || !user.tenant) {
+      throw new UnauthorizedException('User is not assigned to a tenant');
+    }
+
+    const payload: JwtPayload = {
+      userId: user.id,
+      tenantId: user.tenantId,
+      slug: user.tenant.slug,
+    };
     const accessToken = await this.jwtService.signAsync(payload);
 
     return {
@@ -35,6 +51,9 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
+        tenantId: user.tenantId,
+        slug: user.tenant.slug,
+        authProvider: user.authProvider,
       },
     };
   }
@@ -42,13 +61,32 @@ export class AuthService {
   async getMe(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, name: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        tenantId: true,
+        authProvider: true,
+        tenant: { select: { slug: true, name: true } },
+      },
     });
 
     if (!user) {
       throw new UnauthorizedException();
     }
 
-    return user;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      tenantId: user.tenantId,
+      slug: user.tenant?.slug ?? null,
+      tenantName: user.tenant?.name ?? null,
+      authProvider: user.authProvider,
+    };
+  }
+
+  async logout() {
+    return { loggedOut: true };
   }
 }

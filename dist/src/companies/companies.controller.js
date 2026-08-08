@@ -19,83 +19,90 @@ const create_company_dto_1 = require("./dto/create-company.dto");
 const add_member_dto_1 = require("./dto/add-member.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const current_user_decorator_1 = require("../common/decorators/current-user.decorator");
+const tenant_host_guard_1 = require("../tenants/tenant-host.guard");
 let CompaniesController = class CompaniesController {
     companiesService;
     constructor(companiesService) {
         this.companiesService = companiesService;
     }
-    list(userId) {
-        return this.companiesService.list(userId);
+    list(tenantId, userId) {
+        return this.companiesService.list(tenantId, userId);
     }
-    create(userId, dto) {
-        return this.companiesService.create(userId, dto);
+    create(tenantId, userId, dto) {
+        return this.companiesService.create(tenantId, userId, dto);
     }
-    findOne(userId, id) {
-        return this.companiesService.findOne(userId, id);
+    findOne(tenantId, userId, id) {
+        return this.companiesService.findOne(tenantId, userId, id);
     }
-    remove(userId, id) {
-        return this.companiesService.remove(userId, id);
+    remove(tenantId, userId, id) {
+        return this.companiesService.remove(tenantId, userId, id);
     }
-    addMember(userId, id, dto) {
-        return this.companiesService.addMember(userId, id, dto.mockUserId);
+    addMember(tenantId, userId, id, dto) {
+        return this.companiesService.addMember(tenantId, userId, id, dto.mockUserId);
     }
-    removeMember(userId, id, memberId) {
-        return this.companiesService.removeMember(userId, id, memberId);
+    removeMember(tenantId, userId, id, memberId) {
+        return this.companiesService.removeMember(tenantId, userId, id, memberId);
     }
 };
 exports.CompaniesController = CompaniesController;
 __decorate([
     (0, common_1.Get)(),
-    __param(0, (0, current_user_decorator_1.CurrentUserId)()),
+    __param(0, (0, current_user_decorator_1.CurrentTenantId)()),
+    __param(1, (0, current_user_decorator_1.CurrentUserId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [Number, Number]),
     __metadata("design:returntype", void 0)
 ], CompaniesController.prototype, "list", null);
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, current_user_decorator_1.CurrentUserId)()),
-    __param(1, (0, common_1.Body)()),
+    __param(0, (0, current_user_decorator_1.CurrentTenantId)()),
+    __param(1, (0, current_user_decorator_1.CurrentUserId)()),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, create_company_dto_1.CreateCompanyDto]),
+    __metadata("design:paramtypes", [Number, Number, create_company_dto_1.CreateCompanyDto]),
     __metadata("design:returntype", void 0)
 ], CompaniesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    __param(0, (0, current_user_decorator_1.CurrentUserId)()),
-    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(0, (0, current_user_decorator_1.CurrentTenantId)()),
+    __param(1, (0, current_user_decorator_1.CurrentUserId)()),
+    __param(2, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [Number, Number, Number]),
     __metadata("design:returntype", void 0)
 ], CompaniesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    __param(0, (0, current_user_decorator_1.CurrentUserId)()),
-    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(0, (0, current_user_decorator_1.CurrentTenantId)()),
+    __param(1, (0, current_user_decorator_1.CurrentUserId)()),
+    __param(2, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:paramtypes", [Number, Number, Number]),
     __metadata("design:returntype", void 0)
 ], CompaniesController.prototype, "remove", null);
 __decorate([
     (0, common_1.Post)(':id/members'),
-    __param(0, (0, current_user_decorator_1.CurrentUserId)()),
-    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __param(2, (0, common_1.Body)()),
+    __param(0, (0, current_user_decorator_1.CurrentTenantId)()),
+    __param(1, (0, current_user_decorator_1.CurrentUserId)()),
+    __param(2, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(3, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number, add_member_dto_1.AddCompanyMemberDto]),
+    __metadata("design:paramtypes", [Number, Number, Number, add_member_dto_1.AddCompanyMemberDto]),
     __metadata("design:returntype", void 0)
 ], CompaniesController.prototype, "addMember", null);
 __decorate([
     (0, common_1.Delete)(':id/members/:memberId'),
-    __param(0, (0, current_user_decorator_1.CurrentUserId)()),
-    __param(1, (0, common_1.Param)('id', common_1.ParseIntPipe)),
-    __param(2, (0, common_1.Param)('memberId', common_1.ParseIntPipe)),
+    __param(0, (0, current_user_decorator_1.CurrentTenantId)()),
+    __param(1, (0, current_user_decorator_1.CurrentUserId)()),
+    __param(2, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(3, (0, common_1.Param)('memberId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number, Number]),
+    __metadata("design:paramtypes", [Number, Number, Number, Number]),
     __metadata("design:returntype", void 0)
 ], CompaniesController.prototype, "removeMember", null);
 exports.CompaniesController = CompaniesController = __decorate([
     (0, common_1.Controller)('companies'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, tenant_host_guard_1.TenantHostGuard),
     __metadata("design:paramtypes", [companies_service_1.CompaniesService])
 ], CompaniesController);
 //# sourceMappingURL=companies.controller.js.map

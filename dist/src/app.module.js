@@ -13,6 +13,7 @@ const prisma_module_1 = require("./prisma/prisma.module");
 const auth_module_1 = require("./auth/auth.module");
 const companies_module_1 = require("./companies/companies.module");
 const users_module_1 = require("./users/users.module");
+const tenants_module_1 = require("./tenants/tenants.module");
 const health_controller_1 = require("./health.controller");
 let AppModule = class AppModule {
 };
@@ -28,6 +29,7 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             companies_module_1.CompaniesModule,
             users_module_1.UsersModule,
+            tenants_module_1.TenantsModule,
         ],
         controllers: [health_controller_1.HealthController],
     })

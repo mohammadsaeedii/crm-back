@@ -7,15 +7,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Tenant mapped from an add-pnale Customer
+model Tenant {
+  id                 Int       @id @default(autoincrement())
+  externalCustomerId String    @unique
+  slug               String    @unique
+  name               String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  users              User[]
+  companies          Company[]
+}
+
 /// Platform users who can sign in to the panel
 model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
-  passwordHash String
-  name         String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  companies    Company[]
+  id             Int       @id @default(autoincrement())
+  email          String
+  passwordHash   String?
+  name           String?
+  /// Stable subject from add-pnale (`customer_{id}`) — primary SSO mapping key
+  externalUserId String?   @unique
+  authProvider   String    @default("local") // local | add-pnale
+  tenantId       Int?
+  tenant         Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  companies      Company[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
 }
 
 model Company {
@@ -23,11 +43,14 @@ model Company {
   name      String
   ownerId   Int
   owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  tenantId  Int?
+  tenant    Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   members   CompanyMember[]
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
   @@index([ownerId])
+  @@index([tenantId])
 }
 
 /// Users assigned to a company (selected from mock dropdown)
@@ -42,4 +65,27 @@ model CompanyMember {
 
   @@unique([companyId, mockUserId])
   @@index([companyId])
+}
+
+/// Short-lived OAuth PKCE/state records for the CRM OIDC client
+model SsoState {
+  id           String   @id
+  codeVerifier String
+  nonce        String
+  returnTo     String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+/// One-time tickets bridging SSO callback → frontend session cookie
+model AuthTicket {
+  id        String    @id
+  userId    Int
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([expiresAt])
 }

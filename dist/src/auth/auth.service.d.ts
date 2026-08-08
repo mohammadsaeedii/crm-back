@@ -11,11 +11,21 @@ export declare class AuthService {
             id: number;
             email: string;
             name: string | null;
+            tenantId: number;
+            slug: string;
+            authProvider: string;
         };
     }>;
     getMe(userId: number): Promise<{
         id: number;
         email: string;
         name: string | null;
+        tenantId: number | null;
+        slug: string | null;
+        tenantName: string | null;
+        authProvider: string;
+    }>;
+    logout(): Promise<{
+        loggedOut: boolean;
     }>;
 }

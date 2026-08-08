@@ -4,12 +4,12 @@ import { AddCompanyMemberDto } from './dto/add-member.dto';
 export declare class CompaniesController {
     private readonly companiesService;
     constructor(companiesService: CompaniesService);
-    list(userId: number): import("@prisma/client").Prisma.PrismaPromise<({
+    list(tenantId: number, userId: number): import("@prisma/client").Prisma.PrismaPromise<({
         members: {
             id: number;
-            email: string;
             name: string;
             createdAt: Date;
+            email: string;
             mockUserId: string;
         }[];
     } & {
@@ -17,14 +17,15 @@ export declare class CompaniesController {
         name: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: number | null;
         ownerId: number;
     })[]>;
-    create(userId: number, dto: CreateCompanyDto): import("@prisma/client").Prisma.Prisma__CompanyClient<{
+    create(tenantId: number, userId: number, dto: CreateCompanyDto): import("@prisma/client").Prisma.Prisma__CompanyClient<{
         members: {
             id: number;
-            email: string;
             name: string;
             createdAt: Date;
+            email: string;
             companyId: number;
             mockUserId: string;
         }[];
@@ -33,14 +34,15 @@ export declare class CompaniesController {
         name: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: number | null;
         ownerId: number;
     }, never, import("@prisma/client/runtime/library").DefaultArgs, import("@prisma/client").Prisma.PrismaClientOptions>;
-    findOne(userId: number, id: number): Promise<{
+    findOne(tenantId: number, userId: number, id: number): Promise<{
         members: {
             id: number;
-            email: string;
             name: string;
             createdAt: Date;
+            email: string;
             mockUserId: string;
         }[];
     } & {
@@ -48,20 +50,21 @@ export declare class CompaniesController {
         name: string;
         createdAt: Date;
         updatedAt: Date;
+        tenantId: number | null;
         ownerId: number;
     }>;
-    remove(userId: number, id: number): Promise<{
+    remove(tenantId: number, userId: number, id: number): Promise<{
         deleted: boolean;
     }>;
-    addMember(userId: number, id: number, dto: AddCompanyMemberDto): Promise<{
+    addMember(tenantId: number, userId: number, id: number, dto: AddCompanyMemberDto): Promise<{
         id: number;
-        email: string;
         name: string;
         createdAt: Date;
+        email: string;
         companyId: number;
         mockUserId: string;
     }>;
-    removeMember(userId: number, id: number, memberId: number): Promise<{
+    removeMember(tenantId: number, userId: number, id: number, memberId: number): Promise<{
         deleted: boolean;
     }>;
 }
