@@ -10,4 +10,4 @@ if [ "${RUN_SEED:-false}" = "true" ]; then
 fi
 
 echo "Starting API..."
-exec node dist/main.js
+exec node dist/src/main.js
